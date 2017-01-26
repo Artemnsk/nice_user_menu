@@ -1,0 +1,104 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function nice_user_menu_menu() {
+	$items = array();
+	// These paths used to show/hide anonymous/logged in user menus.
+	$items['user-logged-in'] = array(
+		'page callback' => 'drupal_not_found',
+		'page arguments' => array(),
+		'access callback' => 'user_is_logged_in',
+		'access arguments' => array(),
+	);
+	$items['user-anonymous-sign-in'] = array(
+		'page callback' => 'drupal_goto',
+		'page arguments' => array('/user/login'),
+		'access callback' => 'user_is_anonymous',
+		'access arguments' => array(),
+	);
+	return $items;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function nice_user_menu_theme() {
+  $theme = array();
+
+  $theme['nice_user_menu_mobile'] = array(
+    'variables' => array(
+      'menu_panels' => array(),
+    ),
+    'file' => 'nice_user_menu.theme.inc',
+		'template' => 'tpl/nice-user-menu-mobile',
+		'preprocess functions' => array(
+			'nice_user_menu_mobile_preprocess',
+		),
+		'process functions' => array(),
+  );
+
+  return $theme;
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function nice_user_menu_block_info() {
+	$blocks = array();
+	$blocks['nice_user_menu_mobile'] = array(
+		'info' => t('Nice User Menu Mobile'),
+		'cache' => DRUPAL_CACHE_PER_USER,
+	);
+	return $blocks;
+}
+
+/**
+ * Implements hook_block_configure().
+ */
+function nice_user_menu_block_configure($delta = '') {
+	switch ($delta) {
+		case 'nice_user_menu_mobile':
+			$menus = variable_get('nice_user_menu_mobile_menus', array());
+			$form['nice_user_menu_mobile_menus'] = array(
+				'#type' => 'textarea',
+				'#title' => 'Menu items',
+				'#default_value' => implode("\n", $menus),
+			);
+			break;
+	}
+	return $form;
+}
+
+/**
+ * Implements hook_block_save().
+ */
+function nice_user_menu_block_save($delta = '', $edit = array()) {
+	switch ($delta) {
+		case 'nice_user_menu_mobile':
+			variable_set('nice_user_menu_mobile_menus', array_map('trim', explode("\n", $edit['nice_user_menu_mobile_menus'])));
+			break;
+	}
+}
+
+/*
+ * Implements hook_block_view().
+ */
+function nice_user_menu_block_view($delta = '') {
+	$block = array();
+	switch ($delta) {
+		case 'nice_user_menu_mobile':
+			$block['subject'] = "<none>";
+			$block['content'] = array(
+				'#markup' => theme('nice_user_menu_mobile'),
+				'#attached' => array(
+					'js' => array(
+						drupal_get_path('module', 'nice_user_menu') . '/js/nice-user-menu-mobile.js',
+					),
+				),
+			);
+			break;
+	}
+	return $block;
+}

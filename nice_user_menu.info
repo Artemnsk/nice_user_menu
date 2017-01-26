@@ -1,0 +1,5 @@
+name = Nice User Menu
+core = 7.x
+package = Custom
+project = nice_user_menu
+project status url = https://raw.githubusercontent.com/Artemnsk/nice_user_menu/master/release.xml#
